@@ -1,4 +1,4 @@
-@extends('shop')
+{{-- @extends('shop')
    
 @section('content')
 <table id="cart" class="table table-bordered">
@@ -84,5 +84,78 @@
         }
     });
    
+</script>
+@endsection --}}
+
+@extends('shop')
+   
+@section('content')
+<div class="container">
+    <table id="cart" class="table table-bordered">
+        <!-- Existing cart table code -->
+    </table>
+
+    <!-- M-Pesa Payment Modal -->
+    <div class="modal fade" id="mpesaPaymentModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Payment via M-Pesa</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="mpesaPaymentForm">
+                        @csrf
+                        <div class="form-group">
+                            <label for="phone_number">M-Pesa Phone Number</label>
+                            <input type="tel" class="form-control" id="phone_number" 
+                                   placeholder="Enter your M-Pesa registered phone number" 
+                                   pattern="^(?:254|\+254|0)?(7(?:(?:[0-9][0-9])|(?:0[0-9])|(?:1[0-9]))\d{6})$" 
+                                   required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Pay with M-Pesa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+   
+@section('scripts')
+<script type="text/javascript">
+    // Existing cart scripts...
+
+    // M-Pesa Payment Script
+    $(".btn-danger").click(function(e) {
+        e.preventDefault();
+        $('#mpesaPaymentModal').modal('show');
+    });
+
+    $("#mpesaPaymentForm").submit(function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: '{{ route('mpesa.stk-push') }}',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                phone_number: $('#phone_number').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('M-Pesa STK Push sent. Please complete payment on your phone.');
+                    $('#mpesaPaymentModal').modal('hide');
+                } else {
+                    alert('Payment failed: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Error: ' + xhr.responseJSON.message);
+            }
+        });
+    });
 </script>
 @endsection
